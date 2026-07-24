@@ -10,11 +10,10 @@
     Public TimerID As Long
 #End If
 
-' Starts or resets the 2-minute timer
-Sub StartInactivityTimer()
+' Starts a timer based on the specific millisecond value passed to it
+Sub StartDynamicTimer(ByVal TimeInMs As Long)
     StopInactivityTimer ' Clear any existing timer first
-    ' 120000 milliseconds = 120 seconds (2 minutes)
-    TimerID = SetTimer(0, 0, 120000, AddressOf TimerTriggered)
+    TimerID = SetTimer(0, 0, TimeInMs, AddressOf TimerTriggered)
 End Sub
 
 ' Stops the timer
@@ -25,7 +24,7 @@ Sub StopInactivityTimer()
     End If
 End Sub
 
-' What happens when 2 minutes is up
+' What happens when the time is up
 Sub TimerTriggered()
     StopInactivityTimer
     On Error Resume Next
@@ -35,11 +34,21 @@ End Sub
 
 ' Automatically runs every time a slide changes
 Sub OnSlideShowPageChange(ByVal Wn As SlideShowWindow)
-    ' If we are on Slide 1, stop the timer (so it doesn't keep looping)
-    If Wn.View.CurrentShowPosition = 1 Then
+    Dim currentSlide As Long
+    currentSlide = Wn.View.CurrentShowPosition
+    
+    ' Check which slide we are on and set the timer
+    If currentSlide = 1 Then
+        ' Slide 1: Stop the timer so it stays here indefinitely
         StopInactivityTimer
+        
+    ElseIf currentSlide >= 2 And currentSlide <= 7 Then
+        ' Slides 2 through 7: Wait 15 seconds (15000 milliseconds)
+        StartDynamicTimer 15000
+        
     Else
-        ' If we are on any other slide, start/reset the 2-minute timer
-        StartInactivityTimer
+        ' All other slides (8 and beyond): Wait 1.5 minutes (90000 milliseconds)
+        StartDynamicTimer 90000
     End If
 End Sub
+
